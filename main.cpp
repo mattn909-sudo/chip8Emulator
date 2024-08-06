@@ -3,8 +3,18 @@
 #include "SDL2/SDL.h"
 using namespace std;
 
-void setupGraphics(){
+typedef struct{
+    SDL_Window *window;
+}sdl_t;
 
+bool setupGraphics(sdl_t *sdl){
+    if(SDL_Init(SDL_INIT_VIDEO) != 0){
+        SDL_Log("Could not initialize SDL subsystems");
+        SDL_Log(SDL_GetError());
+        return false;
+    }
+    sdl ->window = SDL_CreateWindow("CHIP8 Emulator by Matthew Nguyen", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,800,600,0);
+    return true;
 }
 
 void setupInput(){
