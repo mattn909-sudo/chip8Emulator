@@ -1,4 +1,8 @@
 #include "chip8.h"
+#include <fstream>
+#include <iostream>
+#include <string>
+using namespace std;
 
 void chip8::initialize(){
     pc = 0x200;
@@ -38,8 +42,11 @@ void chip8::emulateCycle(){
                     break;
                 case 0x00E:
                     //return
+                    sp += 1;
+                    pc = stack[sp];
                     break;
             }
+            break;
         case 0x1000:
             //1nnn
             //goto address NNN
@@ -69,6 +76,7 @@ void chip8::emulateCycle(){
         case 0x7000:
             //7xnn vx += nn
             V[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
+            break;
         case 0x8000:
             switch (opcode & 0x000F){
                 case 0x0000:
@@ -127,7 +135,7 @@ void chip8::emulateCycle(){
         case 0xC000:
             //cxnn vx = rand() & NN
             break;
-        case 0xD000:
+        case 0xD000: {
             //dxyn draw(vx,vy,n)
             const char x = ((opcode & 0x0F00) >> 8) & 63;
             const char y = ((opcode & 0x00F0) >> 4) & 31;
@@ -135,7 +143,7 @@ void chip8::emulateCycle(){
             unsigned short pixel;
             V[0xF] = 0;
 
-            for(int yLine = 0; yLine > height; yLine++){
+            for(int yLine = 0; yLine < height; yLine++){
                 pixel = memory[I + yLine];
                 for(int xLine = 0;xLine < 8; xLine++){
                     if(gfx[(x + xLine + ((y + yLine) * 64))] == 1) V[0xF] = 1; 
@@ -146,53 +154,80 @@ void chip8::emulateCycle(){
 
             drawFlag = true;
             break;
-        case 0xE000:
-            switch (opcode & 0x00FF){
-                case 0x009E:
-                    //ex9e keyop i key() == vx
-                    break;
-                case 0x00A1:
-                    //exA1 if key() != vx
-                    break;
+        }
+            
 
+        case 0xE000:
+            switch (opcode & 0x000F) {
+                case 0x000E:
+                    std::cout << "Handle case 0x009E" << std::endl;
+                    break;
+                case 0x0001:
+                    std::cout << "Handle case 0x00A1" << std::endl;
+                    break;
+                default:
+                    std::cout << "Unhandled case in inner switch" << std::endl;
+                    break;
             }
+            break;
+
         case 0xF000:
-            switch (opcode & 0x00FF){
+            switch (opcode & 0x00FF) {
                 case 0x0007:
-                    
+                    // Set Vx to delay timer value
                     break;
                 case 0x000A:
-                    
+                    // Wait for key press, store key in Vx
                     break;
                 case 0x0015:
-                    
+                    // Set delay timer to Vx
                     break;
                 case 0x0018:
-                    
+                    // Set sound timer to Vx
                     break;
                 case 0x001E:
-                    
+                    // Add Vx to I
                     break;
                 case 0x0029:
-                    
+                    // Set I to location of sprite for digit Vx
                     break;
                 case 0x0033:
-                    
+                    // Store BCD representation of Vx in memory locations I, I+1, I+2
                     break;
                 case 0x0055:
-                    
+                    // Store registers V0 to Vx in memory starting at I
                     break;
                 case 0x0065:
-                    
+                    // Fill registers V0 to Vx with values from memory starting at I
+                    break;
+                default:
+                    std::cout << "Unhandled case in inner switch" << std::endl;
                     break;
             }
+            break;
 
-
+            default:
+                std::cout << "Unhandled case in inner switch" << std::endl;
+            break;
     }
 }
 
-void chip8::loadGame(std::string game){
+void chip8::loadGame(char const* fileName){
+    std::ifstream gameRom(fileName, std::ios::binary | std::ios::ate);
 
+    if(gameRom.is_open()){
+        std::streampos size = gameRom.tellg();
+        char* buffer = new char[size];
+
+        gameRom.seekg(0, std::ios::beg);
+        gameRom.read(buffer,size);
+        gameRom.close();
+        for(int i = 0; i < size; i++){
+            memory[0x200 + i] = buffer[i];
+        }
+
+        delete[] buffer;
+    }
 }
 
 void chip8::setKeys(){

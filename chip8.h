@@ -1,22 +1,23 @@
 #include <string>
+#define CHIP8_H
 
 class chip8{
     public:
         void initialize();
-        void loadGame(std::string);
+        void loadGame(char const*);
         void emulateCycle();
         void setKeys();
         bool drawFlag = false;
+        unsigned char gfx[64 * 32];
+        unsigned char memory[4096]{};
     private:
         unsigned short opcode;
-        unsigned char memory[4096];
-        unsigned char V[16];
+        unsigned char V[16]{};
         unsigned short I;
-        unsigned short pc = 0x200;
+        unsigned short pc;
         unsigned short sp;
-        unsigned short stack[16];
-        unsigned char gfx[64 * 32];
-        unsigned char key[16];
+        unsigned short stack[16]{};
+        unsigned char key[16]{};
         unsigned char delay_timer;
         unsigned char sound_timer; 
         unsigned char chip8_fontset[80] =
